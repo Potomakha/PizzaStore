@@ -1,6 +1,8 @@
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.Identity.Web;
 using Microsoft.OpenApi.Models;
+using PizzaStore.Models;
+using PizzaStore.Repositories;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -26,6 +28,20 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI(s => { s.SwaggerEndpoint("/swagger/v1/swagger.json", "Todo API V1"); });
     app.MapGet("/", () => "Hello World!");
 }
+
+var productMockedRepository = new ProductMockedRepository();
+// Products API
+app.MapGet("/products", () => productMockedRepository.GetAll());
+app.MapGet("/products/{id:int}", (int id) => productMockedRepository.Get(id));
+
+app.MapPost("/products", (Product product) =>
+{
+    productMockedRepository.Add(product);
+});
+
+app.MapPut("/products", (Product product) => productMockedRepository.Update(product));
+
+app.MapDelete("/products", (int id) => productMockedRepository.Delete(id));
 
 app.UseHttpsRedirection();
 
