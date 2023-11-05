@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Identity.Web;
 using Microsoft.OpenApi.Models;
 using PizzaStore.Models;
@@ -13,11 +14,16 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
 builder.Services.AddControllers();
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
+builder.Services.AddDbContext<ProductDbContext>(options => options.UseInMemoryDatabase("productsDb"));
 builder.Services.AddSwaggerGen(s =>
 {
     s.SwaggerDoc("v1",
         new OpenApiInfo() { Title = "Todo API", Description = "To track your own tasks ", Version = "v1" });
 });
+
+builder.Services.AddTransient<IProductsRepository, ProductsRepository>();
+builder.Services.AddTransient<IProductReconstructionFactory, ProductReconstructionFactory>();
+builder.Services.AddTransient<IProductMapper, ProductMapper>();
 
 var app = builder.Build();
 
@@ -29,16 +35,15 @@ if (app.Environment.IsDevelopment())
     app.MapGet("/", () => "Hello World!");
 }
 
-var productMockedRepository = new ProductMockedRepository();
 // Products API
-app.MapGet("/products", () => productMockedRepository.GetAll());
-app.MapGet("/products/{id:int}", (int id) => productMockedRepository.Get(id));
+app.MapGet("/products", (IProductsRepository repository) => repository.GetAll());
+app.MapGet("/products/{id:int}", (IProductsRepository repository, int id) => repository.Get(id));
 
-app.MapPost("/products", (Product product) => productMockedRepository.Add(product));
+app.MapPost("/products", (IProductsRepository repository, Product product) => repository.Add(product));
 
-app.MapPut("/products", (Product product) => productMockedRepository.Update(product));
+app.MapPut("/products", (IProductsRepository repository, Product product) => repository.Update(product));
 
-app.MapDelete("/products", (int id) => productMockedRepository.Delete(id));
+app.MapDelete("/products", (IProductsRepository repository, int id) => repository.Delete(id));
 
 app.UseHttpsRedirection();
 
