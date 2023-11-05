@@ -34,10 +34,7 @@ var productMockedRepository = new ProductMockedRepository();
 app.MapGet("/products", () => productMockedRepository.GetAll());
 app.MapGet("/products/{id:int}", (int id) => productMockedRepository.Get(id));
 
-app.MapPost("/products", (Product product) =>
-{
-    productMockedRepository.Add(product);
-});
+app.MapPost("/products", (Product product) => productMockedRepository.Add(product));
 
 app.MapPut("/products", (Product product) => productMockedRepository.Update(product));
 
